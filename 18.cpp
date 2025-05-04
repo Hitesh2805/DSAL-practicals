@@ -1,87 +1,141 @@
-#include <iostream>
-#include <fstream>
-#include <string>
+#include<iostream>
+#include<fstream>
 using namespace std;
 
-struct Student {
-    int roll;
-    string name, division, address;
+class student{
+	public:
+	int roll;
+	char div;
+	char name[10];
+	
+	void take()
+	{
+		cout<<"\nEnter name:";
+		cin>>name;
+		cout<<"\nEnter roll no:";
+		cin>>roll;
+		cout<<"\nEnter div:";
+		cin>>div;
+	}
+	
+	void put()
+	{
+		cout<<"Name:"<<name<<endl;
+		cout<<"Roll no:"<<roll<<endl;
+		cout<<"Div:"<<div<<endl;
+	}
+
 };
 
-void addStudent(const Student& s) {
-    ofstream out("students.txt", ios::app);
-    out << s.roll << " " << s.name << " " << s.division << " " << s.address << endl;
+int main()
+{
+	int ch;
+	int n;
+	
+	do{
+		cout<<"1.create and  write\n2.read\n3.search\n4.append\n5.delete\n";
+		cout<<"Choose option:";
+		cin>>ch;
+
+		switch(ch)
+		{
+	
+		case 1:
+			cout<<"Enter no of students:";
+			cin>>n;
+			student s[10];
+			int i;
+			fstream fp;
+			fp.open("student.txt",ios::out);
+			cout<<endl;
+			for(i=0;i<n;i++)
+			{
+				s[i].take();
+				fp.write((char*)&s[i],sizeof(s[i]));	
+			}
+			break;
+			
+		
+		case 2:
+			fstream fr;
+			fr.open("student.txt",ios::in);
+			student s1;
+			while(fr.read((char*)&s1,sizeof(s1)))
+			{
+			s1.put();
+			}
+			break;
+			
+		case 3:
+			student s;
+			int r;
+			int flag=0;
+			cout<<"Enter roll no to be searched:";
+			cin>>r;
+			fstream fs;
+			fs.open("student.txt",ios::in);
+			while(fs.read((char*)&s,sizeof(s)))
+			{
+				if(s.roll==r)
+				{
+					cout<<"record found\n";
+					s.put();
+					flag=1;
+				}
+			}
+			if(flag==0)
+				cout<<"Record not found\n";
+			break;
+		
+		case 4:
+			student s[10];
+			int i;
+			int n1;
+			fstream fa;
+			fa.open("student.txt",ios::app);
+			cout<<"Enter no of student you want to add:";
+			cin>>n1;
+			for(i=0;i<n1;i++)
+			{
+				s[i].take();
+				fa.write((char*)&s[i],sizeof(s[i]));	
+			}
+			break;
+	   
+        case 5:
+			fstream fp;
+			fstream fp1;
+			int delroll;
+			int flag=0;
+			student s;
+			fp.open("student.txt",ios::in);
+			fp1.open("stud.txt",ios::out);
+			cout<<"Enter roll to be deleted:";
+			cin>>delroll;
+			while(fp.read((char*)&s,sizeof(s)))
+			{
+				if(s.roll==delroll)
+				{
+					cout<<"record found\n";
+					s.put();
+					flag=1;
+				}	
+				else
+					fp1.write((char*)&s,sizeof(s));	
+			}
+			remove("student.txt");
+			rename("stud.txt","student.txt");
+			if(flag==0)
+				cout<<"Record not found\n";
+			break;
+			}
+		}while(ch!=0);
+	return 0;
 }
 
-void deleteStudent(int roll) {
-    ifstream in("students.txt");
-    ofstream out("temp.txt");
-    Student s;
-    bool found = false;
 
-    while (in >> s.roll >> s.name >> s.division >> s.address) {
-        if (s.roll == roll) {
-            found = true;
-        } else {
-            out << s.roll << " " << s.name << " " << s.division << " " << s.address << endl;
-        }
-    }
 
-    in.close();
-    out.close();
-    remove("students.txt");
-    rename("temp.txt", "students.txt");
 
-    if (found) cout << "Student deleted." << endl;
-    else cout << "Student not found!" << endl;
-}
-
-void displayStudent(int roll) {
-    ifstream in("students.txt");
-    Student s;
-    bool found = false;
-
-    while (in >> s.roll >> s.name >> s.division >> s.address) {
-        if (s.roll == roll) {
-            found = true;
-            cout << "Roll: " << s.roll << ", Name: " << s.name << ", Division: " << s.division << ", Address: " << s.address << endl;
-            break;
-        }
-    }
-
-    in.close();
-    if (!found) cout << "Student not found!" << endl;
-}
-
-int main() {
-    int choice, roll;
-    string name, division, address;
-
-    while (true) {
-        cout << "1. Add Student\n2. Delete Student\n3. Display Student\n4. Exit\nEnter choice: ";
-        cin >> choice;
-
-        if (choice == 1) {
-            cout << "Enter roll number: "; cin >> roll;
-            cin.ignore();
-            cout << "Enter name: "; getline(cin, name);
-            cout << "Enter division: "; getline(cin, division);
-            cout << "Enter address: "; getline(cin, address);
-            addStudent({roll, name, division, address});
-        }
-        else if (choice == 2) {
-            cout << "Enter roll number to delete: "; cin >> roll;
-            deleteStudent(roll);
-        }
-        else if (choice == 3) {
-            cout << "Enter roll number to display: "; cin >> roll;
-            displayStudent(roll);
-        }
-        else if (choice == 4) break;
-    }
-
-    return 0;
-}
 
 
 
