@@ -19,7 +19,6 @@ void DFS_non_recursive(int start) {
             visited[current] = 1;
         }
 
-        // Push all adjacent unvisited vertices (higher to lower for consistent order)
         for (int i = n - 1; i >= 0; i--) {
             if (G[current][i] == 1 && !visited[i]) {
                 s.push(i);
@@ -39,7 +38,6 @@ int main() {
         }
     }
 
-    // Initialize visited array
     for (int i = 0; i < n; i++) {
         visited[i] = 0;
     }
