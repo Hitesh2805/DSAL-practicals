@@ -1,90 +1,100 @@
 #include <iostream>
-#include <vector>
-#include <string>
+#define MAX 10
 using namespace std;
 
-struct Client {
-    string name, phoneNumber;
-    bool isDeleted = false;
-};
-
-class PhoneBook {
-    vector<Client> table;
-    int size;
+class Hash {
+    long int arr[MAX];
+    int comparisons[MAX]; 
 public:
-    PhoneBook(int n) : size(n) { table.resize(size); }
-
-    int hashFunc(const string& name) {
-        int hash = 0;
-        for (char c : name) hash += c;
-        return hash % size;
+    Hash() {
+        for (int i = 0; i < MAX; i++) {
+            arr[i] = 0;
+            comparisons[i] = 0;
+        }
     }
 
-    void insert(const string& name, const string& phone) {
-        int index = hashFunc(name), comps = 0;
-        while (table[index].name != "" && !table[index].isDeleted) { comps++; index = (index + 1) % size; }
-        table[index] = {name, phone, false};
-        cout << "Insert Comparisons: " << comps << endl;
+    int hashFun(long int num) {
+        return num % MAX; 
     }
 
-    void search(const string& name) {
-        int index = hashFunc(name), comps = 0;
-        while (table[index].name != "" && table[index].name != name) { comps++; index = (index + 1) % size; }
-        if (table[index].name == name) cout << "Found: " << name << " -> " << table[index].phoneNumber << endl;
-        else cout << "Not Found!" << endl;
-        cout << "Search Comparisons: " << comps << endl;
+    void insert() {
+        long int num;
+        cout << "Enter the number: ";
+        cin >> num;
+
+        int index = hashFun(num);
+        int start = index;
+        int comp = 1; 
+
+        if (arr[index] == 0) {
+            arr[index] = num;
+            comparisons[index] = comp;
+            cout << "Number " << num << " inserted with " << comp << " comparisons." << endl;
+            return;
+        }
+
+        while (arr[index] != 0) {
+            index = (index + 1) % MAX;
+            comp++;
+            if (index == start) {
+                cout << "Hash table is full. Unable to insert " << num << endl;
+                return;
+            }
+        }
+
+        arr[index] = num;
+        comparisons[index] = comp;
+        cout << "Number " << num << " inserted with " << comp << " comparisons." << endl;
     }
 
-    void deleteClient(const string& name) {
-        int index = hashFunc(name), comps = 0;
-        while (table[index].name != "" && table[index].name != name) { comps++; index = (index + 1) % size; }
-        if (table[index].name == name) { table[index].isDeleted = true; cout << "Deleted " << name << endl; }
-        else cout << "Not Found to Delete!" << endl;
-        cout << "Delete Comparisons: " << comps << endl;
+    void display() {
+        for (int i = 0; i < MAX; i++) {
+            if (arr[i] == 0)
+                cout << i << " ------> NULL" << endl;
+            else
+                cout << i << " ------> " << arr[i] << endl;
+        }
+    }
+
+    void displayComparisons() {
+        int totalComparisons = 0;
+
+        cout << "\nComparisons for each key:" << endl;
+        for (int i = 0; i < MAX; i++) {
+            if (arr[i] != 0) {
+                cout << "Key " << arr[i] << " required " << comparisons[i] << " comparisons." << endl;
+                totalComparisons += comparisons[i];
+            }
+        }
+        cout << "Total comparisons: " << totalComparisons << endl;
     }
 };
 
 int main() {
-    int N;
-    cout << "Enter number of clients: ";
-    cin >> N;
-    PhoneBook pb(N);
+    int choice;
+    Hash h;
 
-    for (int i = 0; i < N; i++) {
-        string name, phone;
-        cout << "Enter name of client " << i + 1 << ": ";
-        cin >> name;
-        cout << "Enter phone number for " << name << ": ";
-        cin >> phone;
-        pb.insert(name, phone);
-    }
+    do {
+        cout << "\nMenu:\n1. Insert\n2. Display\n3. Display Comparisons\n0. Exit\nEnter your choice: ";
+        cin >> choice;
 
-    // Search for a client
-    string searchName;
-    cout << "Enter name to search: ";
-    cin >> searchName;
-    pb.search(searchName);
-
-    // Delete a client
-    string deleteName;
-    cout << "Enter name to delete: ";
-    cin >> deleteName;
-    pb.deleteClient(deleteName);
-
+        switch (choice) {
+            case 1:
+                h.insert();
+                break;
+            case 2:
+                h.display();
+                break;
+            case 3:
+                h.displayComparisons();
+                break;
+            case 0:
+                cout << "Exiting..." << endl;
+                break;
+            default:
+                cout << "Invalid choice! Try again." << endl;
+        }
+    } while (choice != 0);
     return 0;
 }
 
-// OUTPUT
-Enter number of clients: 3
-Enter name of client 1: TEJAS
-Enter phone number for TEJAS: 8669704701
-Insert Comparisons: 0
-Enter name of client 2: OM
-Enter phone number for OM: 6373768274
-Insert Comparisons: 1
-Enter name of client 3: RR
-Enter phone number for RR: 6381098724
-Insert Comparisons: 0
-Enter name to search: TEJAS
-Found: TEJAS -> 8669704701
-Search Comparisons: 0
