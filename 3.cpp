@@ -33,7 +33,7 @@ int main() {
         addEdge(u, v);
     }
     cout << "BFS traversal: ";
-    bfs(0); // start from node 0
+    bfs(0);
     return 0;
 }
 // OUTPUT
