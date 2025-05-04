@@ -1,70 +1,110 @@
-#include <iostream>
+#include<iostream>
 using namespace std;
 
-struct Node {
-    char label[30];
-    int count;
-    Node* child[10];
+struct Subsection {
+    string title;
+    Subsection* next;
 };
 
-Node* create(const char* level) {
-    Node* p = new Node;
-    cout << "Enter " << level << " name: ";
-    cin >> p->label;
-    cout << "Enter number of sub-" << level << "s: ";
-    cin >> p->count;
-    for (int i = 0; i < p->count; i++) {
-        if (level == string("book"))
-            p->child[i] = create("chapter");
-        else if (level == string("chapter"))
-            p->child[i] = create("section");
-        else if (level == string("section"))
-            p->child[i] = create("subsection");
-        else
-            p->child[i] = NULL; // no further children
-    }
-    return p;
-}
+struct Section {
+    string title;
+    Subsection* subHead;  
+    Section* next;
+};
 
-void print(Node* r, int depth = 0) {
-    for (int i = 0; i < depth; i++) cout << "--";
-    cout << r->label << "\n";
-    for (int i = 0; i < r->count; i++)
-        if (r->child[i]) print(r->child[i], depth + 1);
-}
+struct Chapter {
+    string title;
+    Section* secHead;  
+    Chapter* next;
+};
+
+// Book node
+struct Book {
+    string title;
+    Chapter* chHead;  
+
+    void createBook() {
+        cout << "Enter book title: ";
+        getline(cin, title);
+        chHead = NULL;
+
+        int chCount;
+        cout << "Enter number of chapters: ";
+        cin >> chCount;
+        cin.ignore();  
+
+        Chapter* lastCh = NULL;
+        for (int i = 0; i < chCount; i++) {
+            Chapter* ch = new Chapter;
+            cout << "Enter chapter " << i + 1 << " title: ";
+            cin >> ch->title;
+            ch->secHead = NULL;
+            ch->next = NULL;
+
+            if (chHead == NULL) chHead = ch;
+            else lastCh->next = ch;
+            lastCh = ch;
+
+            int secCount;
+            cout << "  Enter number of sections: ";
+            cin >> secCount;
+            cin.ignore();
+
+            Section* lastSec = NULL;
+            for (int j = 0; j < secCount; j++) {
+                Section* sec = new Section;
+                cout << "  Enter section " << j + 1 << " title: ";
+                cin >> sec->title;
+                sec->subHead = NULL;
+                sec->next = NULL;
+
+                if (ch->secHead == NULL) ch->secHead = sec;
+                else lastSec->next = sec;
+                lastSec = sec;
+
+                int subCount;
+                cout << "    Enter number of subsections: ";
+                cin >> subCount;
+                cin.ignore();
+
+                Subsection* lastSub = NULL;
+                for (int k = 0; k < subCount; k++) {
+                    Subsection* sub = new Subsection;
+                    cout << "    Enter subsection " << k + 1 << " title: ";
+                    cin >> sub->title;
+                    sub->next = NULL;
+
+                    if (sec->subHead == NULL) sec->subHead = sub;
+                    else lastSub->next = sub;
+                    lastSub = sub;
+                }
+            }
+        }
+    }
+
+    void printBook() {
+        cout << "\nBook: " << title << endl;
+        Chapter* ch = chHead;
+        while (ch != NULL) {
+            cout << "  Chapter: " << ch->title << endl;
+            Section* sec = ch->secHead;
+            while (sec != NULL) {
+                cout << "    Section: " << sec->title << endl;
+                Subsection* sub = sec->subHead;
+                while (sub != NULL) {
+                    cout << "      Subsection: " << sub->title << endl;
+                    sub = sub->next;
+                }
+                sec = sec->next;
+            }
+            ch = ch->next;
+        }
+    }
+};
 
 int main() {
-    cout << "Enter Book Information:\n";
-    Node* root = create("book");
-    cout << "\nStructured Book Content:\n";
-    print(root);
+    Book b;
+    b.createBook();
+    b.printBook();
     return 0;
 }
-
-// OUTPUT
-Enter Book Information:
-Enter book name: RCB
-Enter number of sub-books: 2
-Enter chapter name: VIRAT
-Enter number of sub-chapters: 1
-Enter section name: FANS
-Enter number of sub-sections: 1
-Enter subsection name: 12TH_MAN_ARMY
-Enter number of sub-subsections: 0
-Enter chapter name: LOYALTY
-Enter number of sub-chapters: 1
-Enter section name: 18YRS
-Enter number of sub-sections: 1
-Enter subsection name: SINCE 2008
-Enter number of sub-subsections: 
-Structured Book Content:
-RCB
---VIRAT
-----FANS
-------12TH_MAN_ARMY
---LOYALTY
-----18YRS
-------SINCE _2008
-
-
-=== Code Execution Successful ===
