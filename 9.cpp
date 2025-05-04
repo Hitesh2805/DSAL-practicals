@@ -1,87 +1,151 @@
 #include <iostream>
 using namespace std;
 
-struct Node {
+struct node {
     int data;
-    Node* left = nullptr;
-    Node* right = nullptr;
-    Node(int val) : data(val) {}
+    node *left;
+    node *right;
 };
 
-// Function to insert a node in the BST
-Node* insert(Node* root, int value) {
-    if (!root) return new Node(value);
-    if (value < root->data) root->left = insert(root->left, value);
-    else root->right = insert(root->right, value);
-    return root;
+class Bst {
+public:
+    node *root;
+    Bst() {
+        root = NULL;
+    }
+
+    void create();
+    void insert(node*, node*);
+    void dis();
+    void inorder(node*);
+    void preorder(node*);
+    void postorder(node*);
+    bool search(node*, int); 
+    void mirror(node *);
+};
+
+void Bst::create() {
+    char ch;
+    do {
+        node *nn = new node;
+        cout << "Enter data for node: ";
+        cin >> nn->data;
+        nn->left = NULL;
+        nn->right = NULL;
+        if (root == NULL) {
+            root = nn;
+        } else {
+            insert(root, nn);
+        }
+        cout << "Do you want to add more nodes (y/n)? ";
+        cin >> ch;
+    } while (ch == 'y');
 }
 
-// Function to search for a value in the tree
-bool search(Node* root, int value) {
-    if (!root) return false;
-    if (root->data == value) return true;
-    return (value < root->data) ? search(root->left, value) : search(root->right, value);
+void Bst::insert(node *root, node *nn) {
+    if (nn->data < root->data) {
+        if (root->left == NULL) {
+            root->left = nn;
+        } else {
+            insert(root->left, nn);
+        }
+    } else {
+        if (root->right == NULL) {
+            root->right = nn;
+        } else {
+            insert(root->right, nn);
+        }
+    }
 }
 
-// Function to swap left and right pointers at every node
-void swapChildren(Node* root) {
-    if (!root) return;
-    swap(root->left, root->right);  // Swap left and right children
-    swapChildren(root->left);        // Recursively swap for the left subtree
-    swapChildren(root->right);       // Recursively swap for the right subtree
-}
-
-// Function to display the tree in inorder traversal (for testing purposes)
-void inorder(Node* root) {
-    if (!root) return;
+void Bst::inorder(node *root) {
+    if (root == NULL) return;
     inorder(root->left);
     cout << root->data << " ";
     inorder(root->right);
 }
 
-int main() {
-    Node* root = nullptr;
-    int n, value;
-
-    cout << "Enter number of nodes: ";
-    cin >> n;
-    cout << "Enter the nodes: ";
-    for (int i = 0; i < n; i++) {
-        cin >> value;
-        root = insert(root, value);
-    }
-
-    // Insert a new node
-    cout << "Enter value to insert: ";
-    cin >> value;
-    root = insert(root, value);
-
-    // Search for a specific value
-    cout << "Enter value to search: ";
-    cin >> value;
-    cout << (search(root, value) ? "Found" : "Not Found") << endl;
-
-    // Inorder traversal before swap
-    cout << "Inorder traversal before swap: ";
-    inorder(root);
-    cout << endl;
-
-    // Swap the left and right children at each node
-    swapChildren(root);
-
-    // Inorder traversal after swap
-    cout << "Inorder traversal after swap: ";
-    inorder(root);
-    cout << endl;
-
-    return 0;
+void Bst::preorder(node *root) {
+    if (root == NULL) return;
+    cout << root->data << " ";
+    preorder(root->left);
+    preorder(root->right);
 }
 
-/// OUTPUT
-Enter number of nodes: 5
-Enter the nodes: 20 8 25 4 12
-Enter value to insert: 18
-Enter value to search: 25
-Found
-Inorder traversal before swap: 4 8 12 18 20 25 
-Inorder traversal after swap: 25 20 18 12 8 4 
+void Bst::postorder(node *root) {
+    if (root == NULL) return;
+    postorder(root->left);
+    postorder(root->right);
+    cout << root->data << " ";
+}
+
+void Bst::dis() {
+    cout << "Inorder: ";
+    inorder(root);
+    cout << "\nPostorder: ";
+    postorder(root);
+    cout << "\nPreorder: ";
+    preorder(root);
+    cout << endl;
+}
+
+bool Bst::search(node *root, int n) {
+    node *temp = root;
+    while (temp != NULL) {
+        if (n == temp->data) {
+            return true;
+        } else if (n < temp->data) {
+            temp = temp->left;
+        } else {
+            temp = temp->right;
+        }
+    }
+    return false;
+}
+
+void Bst::mirror(node *root) {
+    if (root == NULL) return;
+    mirror(root->left);
+    mirror(root->right);
+    swap(root->left, root->right);
+}
+
+int main() {
+    Bst o;
+    int choice;
+    char ch;
+    do {
+        cout << "\n1. Insert\n2. Display\n3. Search\n4. Mirror\nEnter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1:
+                o.create();
+                break;
+            case 2:
+                o.dis();
+                break;
+            case 3: {
+                int key;
+                cout << "Enter the node to search: ";
+                cin >> key;
+                if (o.search(o.root, key)) {
+                    cout << "Node found.\n";
+                } else {
+                    cout << "Node not found.\n";
+                }
+                break;
+            }
+            case 4:
+                o.mirror(o.root);
+                cout << "Tree mirrored successfully.\n";
+                o.dis();
+                break;
+            default:
+                cout << "Invalid choice. Please try again.\n";
+                break;
+        }
+        cout << "Do you want to continue (y/n)? ";
+        cin >> ch;
+    } while (ch == 'y');
+    return 0;
+}
