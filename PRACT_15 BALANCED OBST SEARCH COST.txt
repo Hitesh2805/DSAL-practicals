@@ -1,0 +1,42 @@
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int key;
+    Node *left, *right;
+    Node(int k) : key(k), left(0), right(0) {}
+};
+
+Node* build(int a[], int l, int r) {
+    if (l > r) return 0;
+    int m = (l + r) / 2;
+    Node* root = new Node(a[m]);
+    root->left = build(a, l, m - 1);
+    root->right = build(a, m + 1, r);
+    return root;
+}
+
+void preorder(Node* r) {
+    if (!r) return;
+    cout << r->key << " ";
+    preorder(r->left);
+    preorder(r->right);
+}
+
+int main() {
+    int n, a[100];
+    cout << "Enter number of keys: ";
+    cin >> n;
+    cout << "Enter sorted keys:\n";
+    for (int i = 0; i < n; i++) cin >> a[i];
+    Node* root = build(a, 0, n - 1);
+    cout << "Balanced BST (Preorder): ";
+    preorder(root);
+}
+
+/// OUTPUT
+
+Enter number of keys: 5
+Enter sorted keys:
+10 20 30 40 50
+Balanced BST (Preorder): 30 10 20 40 50 

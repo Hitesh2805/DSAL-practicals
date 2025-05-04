@@ -1,0 +1,90 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+struct Client {
+    string name, phoneNumber;
+    bool isDeleted = false;
+};
+
+class PhoneBook {
+    vector<Client> table;
+    int size;
+public:
+    PhoneBook(int n) : size(n) { table.resize(size); }
+
+    int hashFunc(const string& name) {
+        int hash = 0;
+        for (char c : name) hash += c;
+        return hash % size;
+    }
+
+    void insert(const string& name, const string& phone) {
+        int index = hashFunc(name), comps = 0;
+        while (table[index].name != "" && !table[index].isDeleted) { comps++; index = (index + 1) % size; }
+        table[index] = {name, phone, false};
+        cout << "Insert Comparisons: " << comps << endl;
+    }
+
+    void search(const string& name) {
+        int index = hashFunc(name), comps = 0;
+        while (table[index].name != "" && table[index].name != name) { comps++; index = (index + 1) % size; }
+        if (table[index].name == name) cout << "Found: " << name << " -> " << table[index].phoneNumber << endl;
+        else cout << "Not Found!" << endl;
+        cout << "Search Comparisons: " << comps << endl;
+    }
+
+    void deleteClient(const string& name) {
+        int index = hashFunc(name), comps = 0;
+        while (table[index].name != "" && table[index].name != name) { comps++; index = (index + 1) % size; }
+        if (table[index].name == name) { table[index].isDeleted = true; cout << "Deleted " << name << endl; }
+        else cout << "Not Found to Delete!" << endl;
+        cout << "Delete Comparisons: " << comps << endl;
+    }
+};
+
+int main() {
+    int N;
+    cout << "Enter number of clients: ";
+    cin >> N;
+    PhoneBook pb(N);
+
+    for (int i = 0; i < N; i++) {
+        string name, phone;
+        cout << "Enter name of client " << i + 1 << ": ";
+        cin >> name;
+        cout << "Enter phone number for " << name << ": ";
+        cin >> phone;
+        pb.insert(name, phone);
+    }
+
+    // Search for a client
+    string searchName;
+    cout << "Enter name to search: ";
+    cin >> searchName;
+    pb.search(searchName);
+
+    // Delete a client
+    string deleteName;
+    cout << "Enter name to delete: ";
+    cin >> deleteName;
+    pb.deleteClient(deleteName);
+
+    return 0;
+}
+
+// OUTPUT
+Enter number of clients: 3
+Enter name of client 1: TEJAS
+Enter phone number for TEJAS: 8669704701
+Insert Comparisons: 0
+Enter name of client 2: OM
+Enter phone number for OM: 6373768274
+Insert Comparisons: 1
+Enter name of client 3: RR
+Enter phone number for RR: 6381098724
+Insert Comparisons: 0
+Enter name to search: TEJAS
+Found: TEJAS -> 8669704701
+Search Comparisons: 0
