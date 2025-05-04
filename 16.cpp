@@ -1,157 +1,148 @@
 #include <iostream>
+#include <cstring>
 using namespace std;
 
-struct Node {
-    string key, meaning;
-    Node *l, *r; int h;
-    Node(string k, string m) : key(k), meaning(m), l(0), r(0), h(1) {}
+class Node {
+public:
+    char word[50];
+    char meaning[100];
+    Node *left, *right;
+    int height;
+    Node(const char *w, const char *m) {
+        strcpy(word, w);
+        strcpy(meaning, m);
+        left = NULL;
+        right = NULL;
+        height = 1;
+    }
 };
 
-int height(Node* n) {
-    return n ? n->h : 0;
+int height(Node *n) {
+    if (n == NULL)
+        return 0;
+    else
+        return n->height;
 }
 
-int balance(Node* n) {
-    return height(n->l) - height(n->r);
+int getBalance(Node *n) {
+    if (n == NULL)
+        return 0;
+    else
+        return height(n->left) - height(n->right);
 }
 
-Node* rotateR(Node* y) {
-    Node* x = y->l;
-    y->l = x->r; x->r = y;
-    y->h = max(height(y->l), height(y->r)) + 1;
-    x->h = max(height(x->l), height(x->r)) + 1;
+int max(int a, int b) {
+    if (a > b)
+        return a;
+    else
+        return b;
+}
+
+Node* rightRotate(Node *y) {
+    Node *x = y->left;
+    Node *T2 = x->right;
+
+    x->right = y;
+    y->left = T2;
+
+    y->height = max(height(y->left), height(y->right)) + 1;
+    x->height = max(height(x->left), height(x->right)) + 1;
+
     return x;
 }
 
-Node* rotateL(Node* x) {
-    Node* y = x->r;
-    x->r = y->l; y->l = x;
-    x->h = max(height(x->l), height(x->r)) + 1;
-    y->h = max(height(y->l), height(y->r)) + 1;
+Node* leftRotate(Node *x) {
+    Node *y = x->right;
+    Node *T2 = y->left;
+
+    y->left = x;
+    x->right = T2;
+
+    x->height = max(height(x->left), height(x->right)) + 1;
+    y->height = max(height(y->left), height(y->right)) + 1;
+
     return y;
 }
 
-Node* insert(Node* n, string k, string m) {
-    if (!n) return new Node(k, m);
-    if (k < n->key) n->l = insert(n->l, k, m);
-    else if (k > n->key) n->r = insert(n->r, k, m);
-    else return n;
-
-    n->h = 1 + max(height(n->l), height(n->r));
-    int b = balance(n);
-
-    if (b > 1 && k < n->l->key) return rotateR(n);
-    if (b < -1 && k > n->r->key) return rotateL(n);
-    if (b > 1 && k > n->l->key) { n->l = rotateL(n->l); return rotateR(n); }
-    if (b < -1 && k < n->r->key) { n->r = rotateR(n->r); return rotateL(n); }
-
-    return n;
-}
-
-Node* minNode(Node* n) {
-    while (n->l) n = n->l;
-    return n;
-}
-
-Node* del(Node* r, string k) {
-    if (!r) return 0;
-    if (k < r->key) r->l = del(r->l, k);
-    else if (k > r->key) r->r = del(r->r, k);
-    else {
-        if (!r->l || !r->r) {
-            Node* temp = r->l ? r->l : r->r;
-            if (!temp) return 0;
-            *r = *temp;
-        } else {
-            Node* temp = minNode(r->r);
-            r->key = temp->key;
-            r->meaning = temp->meaning;
-            r->r = del(r->r, temp->key);
-        }
+Node* insert(Node *root, const char *w, const char *m) {
+    if (root == NULL) {
+        return new Node(w, m);
     }
 
-    r->h = 1 + max(height(r->l), height(r->r));
-    int b = balance(r);
-    if (b > 1 && balance(r->l) >= 0) return rotateR(r);
-    if (b > 1 && balance(r->l) < 0) { r->l = rotateL(r->l); return rotateR(r); }
-    if (b < -1 && balance(r->r) <= 0) return rotateL(r);
-    if (b < -1 && balance(r->r) > 0) { r->r = rotateR(r->r); return rotateL(r); }
+    if (strcmp(w, root->word) < 0) {
+        root->left = insert(root->left, w, m);
+    }
+    else if (strcmp(w, root->word) > 0) {
+        root->right = insert(root->right, w, m);
+    }
+    else {
+        return root; 
+    }
 
-    return r;
+    root->height = max(height(root->left), height(root->right)) + 1;
+    int balance = getBalance(root);
+
+    if (balance > 1 && strcmp(w, root->left->word) < 0)
+        return rightRotate(root);
+
+    if (balance < -1 && strcmp(w, root->right->word) > 0)
+        return leftRotate(root);
+    
+    if (balance > 1 && strcmp(w, root->left->word) > 0) {
+        root->left = leftRotate(root->left);
+        return rightRotate(root);
+    }
+    
+    if (balance < -1 && strcmp(w, root->right->word) < 0) {
+        root->right = rightRotate(root->right);
+        return leftRotate(root);
+    }
+
+    return root;
 }
 
-void display(Node* r, bool asc) {
-    if (!r) return;
-    if (asc) { display(r->l, asc); cout << r->key << ": " << r->meaning << "\n"; display(r->r, asc); }
-    else     { display(r->r, asc); cout << r->key << ": " << r->meaning << "\n"; display(r->l, asc); }
+void inorder(Node *root) {
+    if (root != NULL) {
+        inorder(root->left);
+        cout << root->word << " : " << root->meaning << endl;
+        inorder(root->right);
+    }
 }
 
-int search(Node* r, string k, int cmp = 1) {
-    if (!r) return cmp - 1;
-    if (r->key == k) return cmp;
-    return k < r->key ? search(r->l, k, cmp + 1) : search(r->r, k, cmp + 1);
+int search(Node *root, const char *key, int &count) {
+    if (root == NULL)
+        return 0;
+
+    count++;
+    if (strcmp(key, root->word) == 0)
+        return 1;
+    else if (strcmp(key, root->word) < 0)
+        return search(root->left, key, count);
+    else
+        return search(root->right, key, count);
 }
 
 int main() {
-    Node* root = 0;
-    int ch; string k, m;
-    do {
-        cout << "\n1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: ";
-        cin >> ch;
-        if (ch == 1) { cin >> k >> m; root = insert(root, k, m); }
-        if (ch == 2) { cin >> k; root = del(root, k); }
-        if (ch == 3) display(root, 1);
-        if (ch == 4) display(root, 0);
-        if (ch == 5) { cin >> k; cout << "Comparisons: " << search(root, k) << "\n"; }
-    } while (ch);
+    Node *root = NULL;
+
+    root = insert(root, "apple", "a fruit");
+    root = insert(root, "book", "something to read");
+    root = insert(root, "zebra", "a wild animal");
+    root = insert(root, "cat", "a pet");
+
+    cout << "\nDictionary (Ascending Order):\n";
+    inorder(root);
+
+    int count = 0;
+    char key[50];
+    cout << "\nEnter word to search: ";
+    cin >> key;
+    if (search(root, key, count) == 1)
+        cout << "Found in " << count << " comparisons.\n";
+    else
+        cout << "Not found. Comparisons: " << count << endl;
+
+    cout << "\nMax comparisons (height): " << height(root) << endl;
+
+    return 0;
 }
-
-// OUPUT
-
-
-1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: 1
-1 APPLE
-
-1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: 1
-2 BANANA
-
-1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: 1
-3 STRAWBERRY
-
-1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: 1
-4
-MANGO
-
-1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: 3
-1: APPLE
-2: BANANA
-3: STRAWBERRY
-4: MANGO
-
-1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: 4
-4: MANGO
-3: STRAWBERRY
-2: BANANA
-1: APPLE
-
-1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: 5
-1
-Comparisons: 2
-
-1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: 5
-3
-Comparisons: 2
-
-1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: 5
-2
-Comparisons: 1
-
-1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: 5
-APPLE
-Comparisons: 3
-
-1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: 5
-BANANA
-Comparisons: 3
-
-1.Insert 2.Delete 3.DisplayAsc 4.DisplayDesc 5.Search 0.Exit: 0
