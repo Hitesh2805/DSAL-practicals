@@ -1,111 +1,148 @@
 #include <iostream>
+#include <string.h>
+#define max 10
 using namespace std;
 
-struct Entry {
-    int key, value;
-    bool isOccupied = false, isDeleted = false;
+struct node {
+    char name[15];
+    long int mobno;
+    int chain;
+
+    node() {
+        strcpy(name, "-");
+        mobno = 0;
+        chain = -1;
+    }
 };
 
-class Dictionary {
-    Entry table[10];  // Fixed size
-    int hash(int k) { return k % 10; }
-
+class hasht {
+    node ht[max];
 public:
-    void insert(int k, int v) {
-        int i = hash(k);
-        for (int j = 0; j < 10; j++) {
-            int idx = (i + j) % 10;
-            if (!table[idx].isOccupied || table[idx].isDeleted) {
-                table[idx] = {k, v, true, false};
-                return;
-            }
+    hasht() {
+        for (int i = 0; i < max; i++) {
+            ht[i] = node();
         }
-        cout << "Table full\n";
     }
 
-    void find(int k) {
-        int i = hash(k);
-        for (int j = 0; j < 10; j++) {
-            int idx = (i + j) % 10;
-            if (table[idx].isOccupied && !table[idx].isDeleted && table[idx].key == k) {
-                cout << "Found: " << table[idx].value << "\n";
-                return;
-            }
-        }
-        cout << "Not found\n";
-    }
-
-    void del(int k) {
-        int i = hash(k);
-        for (int j = 0; j < 10; j++) {
-            int idx = (i + j) % 10;
-            if (table[idx].isOccupied && !table[idx].isDeleted && table[idx].key == k) {
-                table[idx].isDeleted = true;
-                cout << "Deleted\n";
-                return;
-            }
-        }
-        cout << "Not found\n";
-    }
-
-    void show() {
-        for (int i = 0; i < 10; i++) {
-            if (table[i].isOccupied && !table[i].isDeleted)
-                cout << i << ": " << table[i].key << " => " << table[i].value << "\n";
-            else
-                cout << i << ": ---\n";
-        }
-    }
+    int hashfun(long int);
+    void insert();
+    void display();
+    void search();
+    void del();
 };
 
-int main() {
-    Dictionary d;
-    int ch, k, v;
-    do {
-        cout << "\n1.Insert 2.Find 3.Delete 4.Show 5.Exit: ";
-        cin >> ch;
-        if (ch == 1) {
-            cout << "Key & Value: "; cin >> k >> v;
-            d.insert(k, v);
-        } else if (ch == 2) {
-            cout << "Key: "; cin >> k;
-            d.find(k);
-        } else if (ch == 3) {
-            cout << "Key: "; cin >> k;
-            d.del(k);
-        } else if (ch == 4) {
-            d.show();
-        }
-    } while (ch != 5);
-    return 0;
+int hasht::hashfun(long int num) {
+    return (num % max);
 }
 
-// OUTPUT
+void hasht::insert() {
+    int ind, prev;
+    node S;
+    cout << "Enter name and mobile number of a person:" << endl;
+    cin >> S.name >> S.mobno;
 
+    ind = hashfun(S.mobno);
+    if (ht[ind].mobno == 0) {
+        ht[ind] = S;
+    } else {
+        prev = ind;
+        while (ht[ind].mobno != 0) {
+            ind = (ind + 1) % max;
+        }
+        ht[ind] = S;
 
-1.Insert 2.Find 3.Delete 4.Show 5.Exit: 1
-Key & Value: 1 34
+        int temp = hashfun(S.mobno);
+        while (ht[temp].chain != -1) {
+            temp = ht[temp].chain;
+        }
+        ht[temp].chain = ind;
+    }
+}
 
-1.Insert 2.Find 3.Delete 4.Show 5.Exit: 1
-Key & Value: 2 33
+void hasht::display() {
+    cout << "Index\tName\t\tMobile Number\tChain" << endl;
+    for (int i = 0; i < max; i++) {
+        cout << i << "\t" << ht[i].name << "\t\t" << ht[i].mobno << "\t\t" << ht[i].chain << endl;
+    }
+}
 
-1.Insert 2.Find 3.Delete 4.Show 5.Exit: 1
-Key & Value: 3 43
+void hasht::search() {
+    long int num;
+    int ind;
+    cout << "Enter the mobile number to search: ";
+    cin >> num;
 
-1.Insert 2.Find 3.Delete 4.Show 5.Exit: 4
-0: ---
-1: 1 => 34
-2: 2 => 33
-3: 3 => 43
-4: ---
-5: ---
-6: ---
-7: ---
-8: ---
-9: ---
+    ind = hashfun(num);
+    while (ind != -1) {
+        if (num == ht[ind].mobno) {
+            cout << "Mobile number found at index: " << ind << endl;
+            return;
+        }
+        ind = ht[ind].chain;
+    }
+    cout << "Mobile number not found." << endl;
+}
 
-1.Insert 2.Find 3.Delete 4.Show 5.Exit: 2
-Key: 2
-Found: 33
+void hasht::del() {
+    long int num;
+    int ind, prev = -1;
+    cout << "Enter the mobile number to delete: ";
+    cin >> num;
 
-1.Insert 2.Find 3.Delete 4.Show 5.Exit: 5
+    ind = hashfun(num);
+    while (ind != -1) {
+        if (num == ht[ind].mobno) {
+            if (ht[ind].chain == -1) {
+                strcpy(ht[ind].name, "-");
+                ht[ind].mobno = 0;
+                ht[ind].chain = -1;
+            } else {
+                int next = ht[ind].chain;
+                ht[ind] = ht[next];
+                strcpy(ht[next].name, "-");
+                ht[next].mobno = 0;
+                ht[next].chain = -1;
+            }
+
+            if (prev != -1) {
+                ht[prev].chain = ht[ind].chain;
+            }
+            cout << "Record deleted." << endl;
+            return;
+        }
+        prev = ind;
+        ind = ht[ind].chain;
+    }
+
+    cout << "Mobile number not found." << endl;
+}
+
+int main() {
+    int choice;
+    hasht h;
+    char again;
+
+    do {
+        cout << "\n1. Insert\n2. Display\n3. Search\n4. Delete\n5. Exit\nEnter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: h.insert(); break;
+            case 2: h.display(); break;
+            case 3: h.search(); break;
+            case 4: h.del(); break;
+            case 5: cout << "Exiting..." << endl; break;
+            default: cout << "Invalid choice!" << endl;
+        }
+
+        if (choice != 5) {
+            cout << "Do you want to continue? (y/n): ";
+            cin >> again;
+        } else {
+            break;
+        }
+
+    } while (again == 'y' || again == 'Y');
+
+    return 0;
+}
