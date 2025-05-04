@@ -1,80 +1,123 @@
-#include<iostream>
-#define MAX 10
+#include <iostream>
+#include <string.h>
+#define max 10
 using namespace std;
 
-class Hash {
-    long int arr[MAX];
-    int comparisons[MAX]; 
+struct node {
+    char name[15];
+    long int mobno;
+    int chain;
 
-public:
-    Hash() {
-        for (int i = 0; i < MAX; i++) {
-            arr[i] = 0;
-            comparisons[i] = 0;
-        }
-    }
-
-    int hashFun(long int num) {
-        return num % MAX; 
-    }
-
-    void insert() {
-        long int num;
-        cout << "Enter the number: ";
-        cin >> num;
-
-        int index = hashFun(num);
-        int i = 0, comp = 1;
-        
-        if (arr[index] == 0) {
-            arr[index] = num;
-            comparisons[index] = comp;
-            return;
-        }
-
-        while (arr[(index + i * i) % MAX] != 0) {
-            comp++;
-            i++;
-            if (i == MAX) {
-                cout << "Hash table is full" << endl;
-                return;
-            }
-        }
-
-        arr[(index + i * i) % MAX] = num;
-        comparisons[(index + i * i) % MAX] = comp; 
-    }
-
-    void displayComparisons() {
-        int totalComparisons = 0;
-        for (int i = 0; i < MAX; i++) {
-            if (arr[i] != 0) {
-                cout << "Key " << arr[i] << " required " << comparisons[i] << " comparisons." << endl;
-                totalComparisons += comparisons[i];
-            }
-        }
-        cout << "Total comparisons for all keys: " << totalComparisons << endl;
-    }
-
-    void display() {
-        for (int i = 0; i < MAX; i++) {
-            if (arr[i] == 0)
-                cout << i << " ------> NULL" << endl;
-            else
-                cout << i << " ------> " << arr[i] << endl;
-        }
+    node() {
+        strcpy(name, "-");
+        mobno = 0;
+        chain = -1;
     }
 };
 
+class hasht {
+    node ht[max];
+public:
+    int hashfun(long int);
+    void insert();
+    void display();
+    void search();
+    void del();
+};
+
+int hasht::hashfun(long int num) {
+    return (num % max);
+}
+
+void hasht::insert() {
+    int ind, prev;
+    node S;
+    cout << "Enter name and mobile number of a person:" << endl;
+    cin >> S.name >> S.mobno;
+
+    ind = hashfun(S.mobno);
+    if (ht[ind].mobno == 0) {
+        ht[ind] = S;
+    } else {
+        prev = ind;
+        while (ht[ind].mobno != 0) {
+            prev = ind;
+            ind = (ind + 1) % max;
+        }
+        ht[ind] = S;
+
+        while (ht[prev].chain != -1)
+            prev = ht[prev].chain;
+        ht[prev].chain = ind;
+    }
+}
+
+void hasht::display() {
+    cout << "Index\tName\t\tMobile Number\tChain" << endl;
+    for (int i = 0; i < max; i++) {
+        cout << i << "\t" << ht[i].name << "\t\t" << ht[i].mobno << "\t\t" << ht[i].chain << endl;
+    }
+}
+
+void hasht::search() {
+    long int num;
+    int ind;
+    cout << "Enter the mobile number to search: ";
+    cin >> num;
+    ind = hashfun(num);
+
+    while (ind != -1) {
+        if (ht[ind].mobno == num) {
+            cout << "Mobile number found at index: " << ind << endl;
+            return;
+        }
+        ind = ht[ind].chain;
+    }
+    cout << "Number not found." << endl;
+}
+
+void hasht::del() {
+    long int num;
+    int ind, prev = -1;
+    cout << "Enter mobile number to delete: ";
+    cin >> num;
+    ind = hashfun(num);
+
+    while (ind != -1) {
+        if (ht[ind].mobno == num) {
+            if (ht[ind].chain == -1) {
+                strcpy(ht[ind].name, "-");
+                ht[ind].mobno = 0;
+                ht[ind].chain = -1;
+                if (prev != -1) {
+                    ht[prev].chain = -1;
+                }
+                cout << "Record deleted.\n";
+                return;
+            } else {
+                int next = ht[ind].chain;
+                ht[ind] = ht[next]; 
+                strcpy(ht[next].name, "-");
+                ht[next].mobno = 0;
+                ht[next].chain = -1;
+                cout << "Record deleted.\n";
+                return;
+            }
+        }
+        prev = ind;
+        ind = ht[ind].chain;
+    }
+    cout << "Number not found.\n";
+}
+
 int main() {
-    int choice;
-    Hash h;
-
+    int cho;
+    hasht h;
+    char a;
     do {
-        cout << "\nMenu:\n1. Insert\n2. Display\n3. Display Comparisons\n0. Exit\nEnter your choice: ";
-        cin >> choice;
-
-        switch (choice) {
+        cout << "\n1. Insert\n2. Display\n3. Search\n4. Delete\n5. Exit\nEnter your choice: ";
+        cin >> cho;
+        switch (cho) {
             case 1:
                 h.insert();
                 break;
@@ -82,15 +125,20 @@ int main() {
                 h.display();
                 break;
             case 3:
-                h.displayComparisons();
+                h.search();
                 break;
-            case 0:
-                cout << "Exiting..." << endl;
+            case 4:
+                h.del();
                 break;
+            case 5:
+                cout << "Exiting program.\n";
+                return 0;
             default:
-                cout << "Invalid choice! Try again." << endl;
+                cout << "Invalid choice.\n";
+                break;
         }
-    } while (choice != 0);
-
+        cout << "Do you want to continue (y/n)? ";
+        cin >> a;
+    } while (a == 'y' || a == 'Y');
     return 0;
 }
