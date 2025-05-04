@@ -1,140 +1,96 @@
-#include <iostream>
-#include <vector>
+#include<iostream>
+#define MAX 10
 using namespace std;
 
-struct Entry {
-    string name, phone;
-    bool deleted = false, empty = true;
-};
-
-class HashTable {
-    vector<Entry> table;
-    int size = 101;
-    int comparisons;
-
-    int hash(string key) {
-        int h = 0;
-        for (char c : key) h = (h * 31 + c) % size;
-        return h;
-    }
-
-    int probe(string key, int i) {
-        return (hash(key) + i + i*i) % size;
-    }
+class Hash {
+    long int arr[MAX];
+    int comparisons[MAX]; 
 
 public:
-    HashTable() { table.resize(size); }
-
-    void insert(string name, string phone) {
-        for (int i = 0; i < size; i++) {
-            int idx = probe(name, i);
-            if (table[idx].empty || table[idx].deleted) {
-                table[idx] = {name, phone, false, false};
-                cout << "Added " << name << endl;
-                return;
-            }
-            if (table[idx].name == name && !table[idx].deleted) {
-                cout << name << " already exists\n";
-                return;
-            }
+    Hash() {
+        for (int i = 0; i < MAX; i++) {
+            arr[i] = 0;
+            comparisons[i] = 0;
         }
-        cout << "Table full\n";
     }
 
-    void search(string name) {
-        comparisons = 0;
-        for (int i = 0; i < size; i++) {
-            int idx = probe(name, i);
-            comparisons++;
-            if (table[idx].empty) break;
-            if (!table[idx].deleted && table[idx].name == name) {
-                cout << "Found: " << name << " - " << table[idx].phone 
-                     << " (" << comparisons << " comparisons)\n";
-                return;
-            }
-        }
-        cout << name << " not found (" << comparisons << " comparisons)\n";
+    int hashFun(long int num) {
+        return num % MAX; 
     }
 
-    void remove(string name) {
-        for (int i = 0; i < size; i++) {
-            int idx = probe(name, i);
-            if (table[idx].empty) break;
-            if (!table[idx].deleted && table[idx].name == name) {
-                table[idx].deleted = true;
-                cout << "Removed " << name << endl;
+    void insert() {
+        long int num;
+        cout << "Enter the number: ";
+        cin >> num;
+
+        int index = hashFun(num);
+        int i = 0, comp = 1;
+        
+        if (arr[index] == 0) {
+            arr[index] = num;
+            comparisons[index] = comp;
+            return;
+        }
+
+        while (arr[(index + i * i) % MAX] != 0) {
+            comp++;
+            i++;
+            if (i == MAX) {
+                cout << "Hash table is full" << endl;
                 return;
             }
         }
-        cout << name << " not found\n";
+
+        arr[(index + i * i) % MAX] = num;
+        comparisons[(index + i * i) % MAX] = comp; 
+    }
+
+    void displayComparisons() {
+        int totalComparisons = 0;
+        for (int i = 0; i < MAX; i++) {
+            if (arr[i] != 0) {
+                cout << "Key " << arr[i] << " required " << comparisons[i] << " comparisons." << endl;
+                totalComparisons += comparisons[i];
+            }
+        }
+        cout << "Total comparisons for all keys: " << totalComparisons << endl;
     }
 
     void display() {
-        cout << "\nDirectory:\n";
-        for (auto &e : table)
-            if (!e.empty && !e.deleted)
-                cout << e.name << ": " << e.phone << endl;
+        for (int i = 0; i < MAX; i++) {
+            if (arr[i] == 0)
+                cout << i << " ------> NULL" << endl;
+            else
+                cout << i << " ------> " << arr[i] << endl;
+        }
     }
 };
 
 int main() {
-    HashTable dir;
-    while (true) {
-        cout << "\n1. Add 2. Search 3. Remove 4. Display 5. Exit\nChoice: ";
-        int c; cin >> c; cin.ignore();
-        string name, phone;
-        switch (c) {
-            case 1: cout << "Name: "; getline(cin, name);
-                    cout << "Phone: "; getline(cin, phone);
-                    dir.insert(name, phone); break;
-            case 2: cout << "Name: "; getline(cin, name);
-                    dir.search(name); break;
-            case 3: cout << "Name: "; getline(cin, name);
-                    dir.remove(name); break;
-            case 4: dir.display(); break;
-            case 5: return 0;
-            default: cout << "Invalid\n";
+    int choice;
+    Hash h;
+
+    do {
+        cout << "\nMenu:\n1. Insert\n2. Display\n3. Display Comparisons\n0. Exit\nEnter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                h.insert();
+                break;
+            case 2:
+                h.display();
+                break;
+            case 3:
+                h.displayComparisons();
+                break;
+            case 0:
+                cout << "Exiting..." << endl;
+                break;
+            default:
+                cout << "Invalid choice! Try again." << endl;
         }
-    }
+    } while (choice != 0);
+
+    return 0;
 }
-
-// OUTPUT
-
-
-1. Add 2. Search 3. Remove 4. Display 5. Exit
-Choice: 1
-Name: TEJAS
-Phone: 5671238975
-Added TEJAS
-
-1. Add 2. Search 3. Remove 4. Display 5. Exit
-Choice: 1
-Name: DARSHAN
-Phone: 6592645937
-Added DARSHAN
-
-1. Add 2. Search 3. Remove 4. Display 5. Exit
-Choice: 4
-
-Directory:
-TEJAS: 5671238975
-DARSHAN: 6592645937
-
-1. Add 2. Search 3. Remove 4. Display 5. Exit
-Choice: 2
-Name: TEJAS
-Found: TEJAS - 5671238975 (1 comparisons)
-
-1. Add 2. Search 3. Remove 4. Display 5. Exit
-Choice: 3
-Name: DARSHAN
-Removed DARSHAN
-
-1. Add 2. Search 3. Remove 4. Display 5. Exit
-Choice: 4
-
-Directory:
-TEJAS: 5671238975
-
-1. Add 2. Search 3. Remove 4. Display 5. Exit
-Choice: 5
